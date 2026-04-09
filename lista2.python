@@ -9,7 +9,7 @@ class Nodo:
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("Gestor de Listas Enlazadas - Insertar y Puentear")
+        self.root.title("Gestor de Listas Enlazadas")
         self.root.geometry("900x600")
         self.root.configure(bg="#f4f4f9")
 
@@ -78,7 +78,7 @@ class App:
             if pos < 1:
                 raise ValueError
         except ValueError:
-            messagebox.showerror("La posición debe ser mayor o igual a 1")
+            messagebox.showerror("La posicion debe ser mayor o igual a 1")
             return
 
         nuevo = Nodo(valor)
@@ -88,7 +88,7 @@ class App:
             nuevo.sig = self.p
             self.p = nuevo
         else:
-            #otra posicion
+            #otra posicion menos la ultima
             aux = self.p
             actual_pos = 1
             
@@ -98,7 +98,7 @@ class App:
                 actual_pos += 1
             
             if aux is None:
-                messagebox.showerror("La posición excede el tamaño de la lista. Se añadirá al final.")
+                messagebox.showerror("La posicion excede el tamaño de la lista")
                 return
             
 
