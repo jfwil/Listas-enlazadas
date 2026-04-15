@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
+import random
 
 class Nodo:
     def __init__(self, dato):
-        self.num = dato 
+        self.num = dato
         self.sig = None
 
 class App:
@@ -13,25 +14,22 @@ class App:
         self.root.geometry("900x600")
         self.root.configure(bg="#f4f4f9")
 
-        self.p = None 
-        self.total_nodos = 0
-
+        self.p = None  
         header = tk.Frame(root, bg="#f4f4f9")
         header.pack(pady=20)
 
-      
-        tk.Label(header, text="Cant. Nodos:", font=("Arial", 10, "bold"), bg="#f4f4f9").grid(row=0, column=0, padx=5)
-        self.entry_crear = tk.Entry(header, width=10, font=("Arial", 12))
-        self.entry_crear.grid(row=0, column=1, padx=5)
-        tk.Button(header, text="Generar Lista", command=self.generar_lista, bg="#2196F3", fg="white").grid(row=0, column=2, padx=10)
+        # --- SECCIÓN: GENERAR LISTA ALEATORIA ---
+        tk.Button(header, text="Generar Lista Aleatoria", 
+                  command=self.generar_lista_aleatoria, 
+                  bg="#2196F3", fg="white", font=("Arial", 10, "bold"), height=2).grid(row=0, column=0, columnspan=3, pady=10)
 
-  
-        tk.Label(header, text="Nodo a puentear:", font=("Arial", 10, "bold"), bg="#f4f4f9").grid(row=1, column=0, padx=5, pady=15)
-        self.entry_puente = tk.Entry(header, width=10, font=("Arial", 12))
+        # --- SECCIÓN: PUENTEAR ---
+        tk.Label(header, text="Valor a borrar:", font=("Arial", 10, "bold"), bg="#f4f4f9").grid(row=1, column=0, padx=5, pady=15)
+        self.entry_puente = tk.Entry(header, width=15, font=("Arial", 12))
         self.entry_puente.grid(row=1, column=1, padx=5)
         tk.Button(header, text="Puentear Nodo", command=self.puentear_nodo, bg="#FF9800", fg="white").grid(row=1, column=2, padx=10)
 
-        
+        # --- SECCIÓN: INSERTAR EN POSICIÓN ---
         insert_frame = tk.LabelFrame(header, text=" Insertar Nuevo Nodo ", bg="#f4f4f9", font=("Arial", 10, "italic"))
         insert_frame.grid(row=2, column=0, columnspan=3, pady=10, sticky="ew")
 
@@ -40,68 +38,57 @@ class App:
         self.entry_pos.grid(row=0, column=1, padx=5)
 
         tk.Label(insert_frame, text="Valor:", bg="#f4f4f9").grid(row=0, column=2, padx=5, pady=5)
-        self.entry_val = tk.Entry(insert_frame, width=5, font=("Arial", 12))
+        self.entry_val = tk.Entry(insert_frame, width=10, font=("Arial", 12))
         self.entry_val.grid(row=0, column=3, padx=5)
 
         tk.Button(insert_frame, text="Insertar Nodo", command=self.insertar_en_posicion, bg="#4CAF50", fg="white").grid(row=0, column=4, padx=10)
 
-        #canvas
         self.canvas = tk.Canvas(root, width=850, height=250, bg="white", bd=2, relief="ridge")
         self.canvas.pack(pady=20)
 
-    def generar_lista(self):
-        try:
-            cantidad = int(self.entry_crear.get().strip())
-            if cantidad <= 0: 
-                raise ValueError
-        except ValueError:
-            messagebox.showerror("Ingrese un numero positivo")
-            return
-
+    def generar_lista_aleatoria(self):
         self.p = None
         ultimo = None
-        for i in range(1, cantidad + 1):
-            nuevo = Nodo(i)
+        cantidad = random.randint(3, 14)
+        
+        for _ in range(cantidad):
+            valor_hex = hex(random.randint(16, 255))[2:].upper()
+            nuevo = Nodo(valor_hex)
+            
             if self.p is None:
                 self.p = nuevo
             else:
                 ultimo.sig = nuevo
             ultimo = nuevo
-        self.total_nodos = cantidad
+            
         self.dibujar_lista()
 
     def insertar_en_posicion(self):
-        
         try:
             pos = int(self.entry_pos.get().strip())
-            valor = int(self.entry_val.get().strip())
-            if pos < 1:
+            valor = self.entry_val.get().strip().upper()
+            if pos < 1 or not valor:
                 raise ValueError
         except ValueError:
-            messagebox.showerror("La posicion debe ser mayor o igual a 1")
+            messagebox.showerror("Datos inválidos")
             return
 
         nuevo = Nodo(valor)
 
-        #cambiar cabeza
         if pos == 1:
             nuevo.sig = self.p
             self.p = nuevo
         else:
-            #otra posicion menos la ultima
             aux = self.p
             actual_pos = 1
-            
-            #get nodo anterior de la posicion a insertar cambiar sig
             while aux is not None and actual_pos < pos - 1:
                 aux = aux.sig
                 actual_pos += 1
             
             if aux is None:
-                messagebox.showerror("La posicion excede el tamaño de la lista")
+                messagebox.showerror("La posicion no existe.")
                 return
             
-
             nuevo.sig = aux.sig
             aux.sig = nuevo
 
@@ -112,11 +99,8 @@ class App:
             messagebox.showwarning("Lista vacía")
             return
 
-        try:
-            target = int(self.entry_puente.get().strip())
-        except ValueError:
-            messagebox.showerror("Ingresar el nodo a eliminar")
-            return
+        target = self.entry_puente.get().strip().upper()
+        if not target: return
 
         if self.p.num == target:
             self.p = self.p.sig
@@ -136,30 +120,25 @@ class App:
             self.dibujar_lista()
             self.entry_puente.delete(0, tk.END)
         else:
-            messagebox.showinfo("El nodo {target} no existe")
+            messagebox.showinfo("El valor {target} no existe")
 
     def dibujar_lista(self):
         self.canvas.delete("all")
         curr = self.p
-        x, y = 50, 125
+        x, y = 60, 125
         
         if not curr:
             self.canvas.create_text(425, 125, text="LISTA VACÍA", font=("Arial", 14), fill="grey")
             return
 
         while curr:
-            
-            self.canvas.create_oval(x, y-25, x+50, y+25, fill="#e8f5e9", outline="#2e7d32", width=2)
-            self.canvas.create_text(x + 25, y, text=str(curr.num), font=("Arial", 10, "bold"))
+            self.canvas.create_oval(x, y-25, x+50, y+25, fill="#e3f2fd", outline="#1976d2", width=2)
+            self.canvas.create_text(x + 25, y, text=curr.num, font=("Arial", 10, "bold"))
             
             if curr.sig:
-                
                 self.canvas.create_line(x+50, y, x+90, y, arrow=tk.LAST, width=2, fill="#546e7a")
                 x += 90
-            else:
-                
-                self.canvas.create_text(x+80, y, text="NULL", fill="#d32f2f", font=("Arial", 10, "bold"))
-            
+
             curr = curr.sig
 
 if __name__ == "__main__":
